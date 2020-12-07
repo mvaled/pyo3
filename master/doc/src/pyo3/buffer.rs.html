@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../pyo3/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -689,17 +692,6 @@
 <span id="689">689</span>
 <span id="690">690</span>
 <span id="691">691</span>
-<span id="692">692</span>
-<span id="693">693</span>
-<span id="694">694</span>
-<span id="695">695</span>
-<span id="696">696</span>
-<span id="697">697</span>
-<span id="698">698</span>
-<span id="699">699</span>
-<span id="700">700</span>
-<span id="701">701</span>
-<span id="702">702</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017 Daniel Grunwald</span>
 <span class="comment">//</span>
@@ -749,17 +741,12 @@
 
 <span class="kw">impl</span> <span class="ident">ElementType</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_format</span>(<span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">CStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ElementType</span> {
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">to_bytes</span>();
-        <span class="kw">if</span> <span class="ident">slice</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="ident">native_element_type_from_type_char</span>(<span class="ident">slice</span>[<span class="number">0</span>])
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">slice</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
-            <span class="kw">match</span> <span class="ident">slice</span>[<span class="number">0</span>] {
-                <span class="string">b&#39;@&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">native_element_type_from_type_char</span>(<span class="ident">slice</span>[<span class="number">1</span>]),
-                <span class="string">b&#39;=&#39;</span> <span class="op">|</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;!&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">standard_element_type_from_type_char</span>(<span class="ident">slice</span>[<span class="number">1</span>]),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ElementType</span>::<span class="ident">Unknown</span>,
+        <span class="kw">match</span> <span class="ident">format</span>.<span class="ident">to_bytes</span>() {
+            [<span class="ident">char</span>] <span class="op">|</span> [<span class="string">b&#39;@&#39;</span>, <span class="ident">char</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">native_element_type_from_type_char</span>(<span class="kw-2">*</span><span class="ident">char</span>),
+            [<span class="ident">modifier</span>, <span class="ident">char</span>] <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">modifier</span>, <span class="string">b&#39;=&#39;</span> <span class="op">|</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;!&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">standard_element_type_from_type_char</span>(<span class="kw-2">*</span><span class="ident">char</span>)
             }
-        } <span class="kw">else</span> {
-            <span class="ident">ElementType</span>::<span class="ident">Unknown</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ElementType</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -835,18 +822,12 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">is_matching_endian</span>(<span class="ident">c</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">match</span> <span class="ident">c</span> {
-        <span class="string">b&#39;@&#39;</span> <span class="op">|</span> <span class="string">b&#39;=&#39;</span> <span class="op">|</span> <span class="string">b&#39;&lt;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-    }
+    <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;@&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;=&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;&gt;&#39;</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">is_matching_endian</span>(<span class="ident">c</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">match</span> <span class="ident">c</span> {
-        <span class="string">b&#39;@&#39;</span> <span class="op">|</span> <span class="string">b&#39;=&#39;</span> <span class="op">|</span> <span class="string">b&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;!&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-    }
+    <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;@&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;=&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;&gt;&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;!&#39;</span>
 }
 
 <span class="doccomment">/// Trait implemented for possible element types of `PyBuffer`.</span>
@@ -859,10 +840,10 @@
 <span class="kw">fn</span> <span class="ident">validate</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ffi</span>::<span class="ident">Py_buffer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="comment">// shape and stride information must be provided when we use PyBUF_FULL_RO</span>
     <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">shape</span>.<span class="ident">is_null</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">py_err</span>(<span class="string">&quot;Shape is Null&quot;</span>));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">new_err</span>(<span class="string">&quot;Shape is Null&quot;</span>));
     }
     <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">strides</span>.<span class="ident">is_null</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">py_err</span>(
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">new_err</span>(
             <span class="string">&quot;PyBuffer: Strides is Null&quot;</span>,
         ));
     }
@@ -888,12 +869,12 @@
             <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">PyBuffer</span>(<span class="ident">buf</span>, <span class="ident">PhantomData</span>);
             <span class="comment">// Type Check</span>
             <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">item_size</span>()
-                <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">buf</span>.<span class="number">0</span>.<span class="ident">buf</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
-                <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">T</span>::<span class="ident">is_compatible_format</span>(<span class="ident">buf</span>.<span class="ident">format</span>())
+                <span class="op">&amp;&amp;</span> (<span class="ident">buf</span>.<span class="number">0</span>.<span class="ident">buf</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+                <span class="op">&amp;&amp;</span> <span class="ident">T</span>::<span class="ident">is_compatible_format</span>(<span class="ident">buf</span>.<span class="ident">format</span>())
             {
                 <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
             } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">py_err</span>(
+                <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">new_err</span>(
                     <span class="string">&quot;Incompatible type as buffer&quot;</span>,
                 ))
             }
@@ -1059,7 +1040,7 @@
     <span class="doccomment">/// The returned slice uses type `Cell&lt;T&gt;` because it&#39;s theoretically possible for any call into the Python runtime</span>
     <span class="doccomment">/// to modify the values in the slice.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">cell</span>::<span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">readonly</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">is_c_contiguous</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">readonly</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">is_c_contiguous</span>() {
             <span class="kw">unsafe</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">buf</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cell</span>::<span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -1081,7 +1062,7 @@
     <span class="doccomment">/// The returned slice uses type `Cell&lt;T&gt;` because it&#39;s theoretically possible for any call into the Python runtime</span>
     <span class="doccomment">/// to modify the values in the slice.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_fortran_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ReadOnlyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">item_size</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">is_fortran_contiguous</span>() {
+        <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">item_size</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">is_fortran_contiguous</span>() {
             <span class="kw">unsafe</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">buf</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ReadOnlyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -1104,7 +1085,7 @@
     <span class="doccomment">/// The returned slice uses type `Cell&lt;T&gt;` because it&#39;s theoretically possible for any call into the Python runtime</span>
     <span class="doccomment">/// to modify the values in the slice.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_fortran_mut_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">cell</span>::<span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">readonly</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">is_fortran_contiguous</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">readonly</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">is_fortran_contiguous</span>() {
             <span class="kw">unsafe</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(
                     <span class="self">self</span>.<span class="number">0</span>.<span class="ident">buf</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cell</span>::<span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -1144,7 +1125,7 @@
 
     <span class="kw">fn</span> <span class="ident">copy_to_slice_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">fort</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">target</span>) <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">len_bytes</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">py_err</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">new_err</span>(
                 <span class="string">&quot;Slice length does not match buffer length.&quot;</span>,
             ));
         }
@@ -1231,7 +1212,7 @@
             <span class="kw">return</span> <span class="ident">buffer_readonly_error</span>();
         }
         <span class="kw">if</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">source</span>) <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">len_bytes</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">py_err</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">new_err</span>(
                 <span class="string">&quot;Slice length does not match buffer length.&quot;</span>,
             ));
         }
@@ -1267,7 +1248,7 @@
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">fn</span> <span class="ident">buffer_readonly_error</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">py_err</span>(
+    <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">PyBufferError</span>::<span class="ident">new_err</span>(
         <span class="string">&quot;Cannot write to read-only buffer.&quot;</span>,
     ))
 }
@@ -1303,7 +1284,7 @@
         <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Element</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span> {
             <span class="kw">fn</span> <span class="ident">is_compatible_format</span>(<span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="ident">CStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">format</span>.<span class="ident">to_bytes</span>();
-                <span class="kw">if</span> <span class="ident">slice</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">is_matching_endian</span>(<span class="ident">slice</span>[<span class="number">0</span>]) {
+                <span class="kw">if</span> <span class="ident">slice</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_matching_endian</span>(<span class="ident">slice</span>[<span class="number">0</span>]) {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
                 <span class="ident">ElementType</span>::<span class="ident">from_format</span>(<span class="ident">format</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">ElementType</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> { <span class="ident">bytes</span>: <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>() }
