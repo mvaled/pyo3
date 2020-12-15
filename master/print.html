@@ -302,6 +302,8 @@ about this topic.</p>
 <li><a href="https://github.com/cds-astro/mocpy">mocpy</a> <em>Astronomical Python library offering data structures for describing any arbitrary coverage regions on the unit sphere</em></li>
 <li><a href="https://github.com/huggingface/tokenizers/tree/master/bindings/python">tokenizers</a> <em>Python bindings to the Hugging Face tokenizers (NLP) written in Rust</em></li>
 <li><a href="https://github.com/Project-Dream-Weaver/Pyre">pyre</a> <em>Fast Python HTTP server written in Rust</em></li>
+<li><a href="https://github.com/Stranger6667/jsonschema-rs/tree/master/python">jsonschema-rs</a> <em>Fast JSON Schema validation library</em></li>
+<li><a href="https://github.com/Stranger6667/css-inline/tree/master/python">css-inline</a> <em>CSS inlining for Python implemented in Rust</em></li>
 </ul>
 <h2><a class="header" href="#license" id="license">License</a></h2>
 <p>PyO3 is licensed under the <a href="http://opensource.org/licenses/APACHE-2.0">Apache-2.0 license</a>.
@@ -511,6 +513,8 @@ impl MyClass {
 }
 <span class="boring">}
 </span></code></pre></pre>
+<p>Note that <code>text_signature</code> on classes is not compatible with compilation in
+<code>abi3</code> mode until Python 3.10 or greater.</p>
 <h3><a class="header" href="#making-the-function-signature-available-to-python-old-method" id="making-the-function-signature-available-to-python-old-method">Making the function signature available to Python (old method)</a></h3>
 <p>Alternatively, simply make sure the first line of your docstring is
 formatted like in the following example. Please note that the newline after the
@@ -2755,6 +2759,21 @@ pyo3 = { version = &quot;...&quot;, features = [&quot;abi3&quot;]}
 <p>Ensure that the <code>.whl</code> is correctly marked as <code>abi3</code>. For projects using <code>setuptools</code>, this is accomplished by passing <code>--py-limited-api=cp3x</code> (where <code>x</code> is the minimum Python version supported by the wheel, e.g. <code>--py-limited-api=cp35</code> for Python 3.5) to <code>setup.py bdist_wheel</code>.</p>
 </li>
 </ol>
+<h3><a class="header" href="#minimum-python-version-for-abi3" id="minimum-python-version-for-abi3">Minimum Python version for <code>abi3</code></a></h3>
+<p>Because a single <code>abi3</code> wheel can be used with many different Python versions, PyO3 has feature flags <code>abi3-py36</code>, <code>abi3-py37</code>, <code>abi-py38</code> etc. to set the minimum required Python version for your <code>abi3</code> wheel.
+For example, if you set the <code>abi3-py36</code> feature, your extension wheel can be used on all Python 3 versions from Python 3.6 and up. <code>maturin</code> and <code>setuptools-rust</code> will give the wheel a name like <code>my-extension-1.0-cp36-abi3-manylinux2020_x86_64.whl</code>.
+If you set more that one of these api version feature flags the highest version always wins. For example, with both <code>abi3-py36</code> and <code>abi3-py38</code> set, PyO3 would build a wheel which supports Python 3.8 and up.
+PyO3 is only able to link your extension module to api3 version up to and including your host Python version. E.g., if you set <code>abi3-py38</code> and try to compile the crate with a host of Python 3.6, the build will fail.</p>
+<p>As an advanced feature, you can build PyO3 wheel without calling Python interpreter with
+the environment variable <code>PYO3_NO_PYTHON</code> set, but this only works on *NIX.</p>
+<h3><a class="header" href="#missing-features" id="missing-features">Missing features</a></h3>
+<p>Due to limitations in the Python API, there are a few <code>pyo3</code> features that do
+not work when compiling for <code>abi3</code>. These are:</p>
+<ul>
+<li><code>#[text_signature]</code> does not work on classes until Python 3.10 or greater.</li>
+<li>The <code>dict</code> and <code>weakref</code> options on classes are not supported.</li>
+<li>The buffer API is not supported.</li>
+</ul>
 <h2><a class="header" href="#cross-compiling" id="cross-compiling">Cross Compiling</a></h2>
 <p>Cross compiling PyO3 modules is relatively straightforward and requires a few pieces of software:</p>
 <ul>
@@ -3954,7 +3973,11 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 </ul>
 <h3><a class="header" href="#added" id="added">Added</a></h3>
 <ul>
-<li>Add support for building for CPython limited API. This required a few minor changes to runtime behaviour of of pyo3 <code>#[pyclass]</code> types. See the migration guide for full details. <a href="https://github.com/PyO3/pyo3/pull/1152">#1152</a></li>
+<li>Add support for building for CPython limited API. This required a few minor changes to runtime behaviour of of pyo3 <code>#[pyclass]</code> types. See the migration guide for full details. <a href="https://github.com/PyO3/pyo3/pull/1152">#1152</a>
+<ul>
+<li>Add feature flags <code>abi3-py*</code>  to set the minimum Python version when using the limited API. <a href="(https://github.com/PyO3/pyo3/pull/1263)">#1263</a></li>
+</ul>
+</li>
 <li>Add argument names to <code>TypeError</code> messages generated by pymethod wrappers. <a href="https://github.com/PyO3/pyo3/pull/1212">#1212</a></li>
 <li>Add FFI definitions for PEP 587 &quot;Python Initialization Configuration&quot;. <a href="https://github.com/PyO3/pyo3/pull/1247">#1247</a></li>
 <li>Add <code>PyEval_SetProfile</code> and <code>PyEval_SetTrace</code> to FFI. <a href="https://github.com/PyO3/pyo3/pull/1255">#1255</a></li>
@@ -3962,8 +3985,8 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Add <code>PyAny::is_instance()</code> method. <a href="https://github.com/PyO3/pyo3/pull/1276">#1276</a></li>
 <li>Add support for conversion between <code>char</code> and <code>PyString</code>. <a href="https://github.com/PyO3/pyo3/pull/1282">#1282</a></li>
 <li>Add FFI definitions for <code>PyBuffer_SizeFromFormat</code>, <code>PyObject_LengthHint</code>, <code>PyObject_CallNoArgs</code>, <code>PyObject_CallOneArg</code>, <code>PyObject_CallMethodNoArgs</code>, <code>PyObject_CallMethodOneArg</code>, <code>PyObject_VectorcallDict</code>, and <code>PyObject_VectorcallMethod</code>. <a href="https://github.com/PyO3/pyo3/pull/1287">#1287</a></li>
-<li>Allow the use of a string literal in <code>#[pyclass(name = &quot;string literal&quot;)]</code>. <a href="https://github.com/PyO3/pyo3/pull/1295">#1295</a></li>
 <li>Add section about Python::check_signals to the FAQ page of the user guide. <a href="https://github.com/PyO3/pyo3/pull/1301">#1301</a></li>
+<li>Add conversions between u128/i128 and PyLong for PyPy. <a href="https://github.com/PyO3/pyo3/pull/1310">#1310</a></li>
 </ul>
 <h3><a class="header" href="#changed" id="changed">Changed</a></h3>
 <ul>
@@ -3976,6 +3999,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Rename <code>PyTypeInfo::is_instance</code> and <code>PyTypeInfo::is_exact_instance</code> to <code>PyTypeInfo::is_type_of</code> and <code>PyTypeInfo::is_exact_type_of</code>. <a href="https://github.com/PyO3/pyo3/pull/1278">#1278</a></li>
 <li>Optimize <code>PyAny::call0</code>, <code>Py::call0</code> and <code>PyAny::call_method0</code> and <code>Py::call_method0</code> on Python 3.9 and up. <a href="https://github.com/PyO3/pyo3/pull/1285">#1287</a></li>
 <li>Deprecate <code>Python::is_instance</code>, <code>Python::is_subclass</code>, <code>Python::release</code>, and <code>Python::xdecref</code>. <a href="https://github.com/PyO3/pyo3/pull/1292">#1292</a></li>
+<li>Require double-quotes for pyclass name argument e.g <code>#[pyclass(name = &quot;MyClass&quot;)]</code>. <a href="https://github.com/PyO3/pyo3/pull/1303">#1303</a></li>
 </ul>
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>
@@ -3989,6 +4013,8 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Fix <code>#[text_signature]</code> interacting badly with rust <code>r#raw_identifiers</code>. <a href="https://github.com/PyO3/pyo3/pull/1286">#1286</a></li>
 <li>Fix FFI definitions for <code>PyObject_Vectorcall</code> and <code>PyVectorcall_Call</code>. <a href="https://github.com/PyO3/pyo3/pull/1285">#1287</a></li>
 <li>Fix building with Anaconda python inside a virtualenv. <a href="https://github.com/PyO3/pyo3/pull/1290">#1290</a></li>
+<li>Fix definition of opaque FFI types. <a href="https://github.com/PyO3/pyo3/pull/1312">#1312</a></li>
+<li>Fix using custom error type in pyclass <code>#[new]</code> methods. <a href="https://github.com/PyO3/pyo3/pull/1319">#1319</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0123v01240124a---2020-11-28" id="a-hrefhttpsgithubcompyo3pyo3comparev0123v01240124a---2020-11-28"><a href="https://github.com/pyo3/pyo3/compare/v0.12.3...v0.12.4">0.12.4</a> - 2020-11-28</a></h2>
 <h3><a class="header" href="#fixed-1" id="fixed-1">Fixed</a></h3>
